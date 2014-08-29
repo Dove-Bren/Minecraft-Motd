@@ -16,7 +16,7 @@ import org.bukkit.plugin.java.JavaPlugin;
  * @author Jeru
  * @version 0.1
  * 
- * desc
+ * A message of the day system for the Minecraft Bukkit server.
  */
 
 public class MotdPlugin extends JavaPlugin implements Listener
