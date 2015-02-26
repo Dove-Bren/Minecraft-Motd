@@ -4,6 +4,8 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 
+import org.bukkit.command.Command;
+import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.event.EventHandler;
@@ -37,14 +39,19 @@ public class MotdPlugin extends JavaPlugin implements Listener
 	 */
 	private YamlConfiguration config;
 	
+	private boolean setup = false;
+	
 	/**
 	 * Registers events and resolves the motd.
 	 */
 	@Override
 	public void onEnable()
 	{
-		//register events (plugin, listener)
-		getServer().getPluginManager().registerEvents(this, this);
+		if (setup == false) { //first time setting up, so register events and what have you
+			setup = true;
+			//register events (plugin, listener)
+			getServer().getPluginManager().registerEvents(this, this);
+		}
 		
 		//Path filePath = Paths.get("/res/message.txt");
 		File file = new File(getDataFolder(), "message.yml");		
@@ -94,13 +101,58 @@ public class MotdPlugin extends JavaPlugin implements Listener
 	@Override
 	public void onDisable()
 	{
-		
+		this.config.set("message", _message);
+		config.save(file);
+	}
+	
+	public void reload() {
+		onDisable();
+		onEnable();
 	}
 	
 	@EventHandler(priority = EventPriority.LOWEST)
 	public void onLogin(PlayerJoinEvent event)
 	{
-		System.out.println("Player login!\nMessage: " + _message);
+		//System.out.println("Player login!\nMessage: " + _message);
 		event.getPlayer().sendMessage(_message);
+	}
+	
+	public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args){
+		
+		if (cmd.getName().equalsIgnoreCase("motd")) {
+			if (args.length == 0) {
+				return false;
+			}
+			if (args[0].equalsIgnoreCase("reload")) {
+				sender.sendMessage("Reloading MOTD...");
+				getLogger().info("Reloading MOTD");
+				reload();
+				sender.sendMessage("Reload complete!");
+				getLogger().info("Reload of MOTD complete!");
+				return true;
+			}
+			if (args[0].equalsIgnoreCase("set")) {
+				if (args.length < 2) {
+					return false;
+				}
+				String msg = "";
+				for (int i = 1; i < args.length; i++) {
+					msg += "args[i] ";
+				}
+				
+				if (msg.trim().isEmpty()) {
+					sender.sendMessage("Please supply a non-empty string!");
+					return true;
+				}
+				
+				this._message = msg;
+			}
+			
+			
+		}
+		
+		
+		
+		return false;
 	}
 }

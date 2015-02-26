@@ -1,0 +1,8 @@
+name: MotdPlugin
+main: com.Mint.MotdPlugin
+version: 0.1
+commands:
+    motd:
+        permission: bukkit.command.ban.player
+        usage: /motd [reload| set] {message}
+        description: reloads the message of the day from config or updates the current message
