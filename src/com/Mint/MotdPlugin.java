@@ -40,15 +40,15 @@ public class MotdPlugin extends JavaPlugin implements Listener
 	 * plain text files because they sort data easily. In this way, you can have multiple fields and not have to do
 	 * nasty scanning and token parsing to find them.
 	 */
-	private YamlConfiguration config;
+	private static YamlConfiguration config;
+	
+	private static boolean enable = false;
 		
 	/**
 	 * Loads up the config and resolves the motd
 	 */
 	@Override
 	public void onLoad() {
-
-		getServer().getPluginManager().registerEvents(this, this);
 		
 
 		configFile = new File(getDataFolder(), configFileName);
@@ -74,6 +74,12 @@ public class MotdPlugin extends JavaPlugin implements Listener
 	@Override
 	public void onEnable()
 	{
+		
+		if (!enable) {
+			enable = true;
+			getServer().getPluginManager().registerEvents(this, this);
+		}
+
 		
 		config = new YamlConfiguration();
 		
@@ -145,7 +151,7 @@ public class MotdPlugin extends JavaPlugin implements Listener
 				}
 				String msg = "";
 				for (int i = 1; i < args.length; i++) {
-					msg += "args[i] ";
+					msg += args[i] + " ";
 				}
 				
 				if (msg.trim().isEmpty()) {
@@ -153,7 +159,10 @@ public class MotdPlugin extends JavaPlugin implements Listener
 					return true;
 				}
 				
-				this._message = msg;
+				_message = msg;
+				onDisable();
+				sender.sendMessage("MOTD set to: " + msg);
+				return true;
 			}
 			
 			
