@@ -24,7 +24,10 @@ import org.bukkit.plugin.java.JavaPlugin;
 public class MotdPlugin extends JavaPlugin implements Listener
 {
 	private static final String _defaultMessage = "Welcome to the New Mexico Tech Minecraft Server";
-	private String _message;
+	private static String _message;
+	private static File configFile;
+	private static String configFileName = "message.yml";
+	
 	/**
 	 * Created a version number to keep track of any changes that may be made in the future.
 	 * This is great for checking compliance of configuration files. What if you want to add different MOTD to different
@@ -38,25 +41,18 @@ public class MotdPlugin extends JavaPlugin implements Listener
 	 * nasty scanning and token parsing to find them.
 	 */
 	private YamlConfiguration config;
-	
-	private boolean setup = false;
-	
+		
 	/**
-	 * Registers events and resolves the motd.
+	 * Loads up the config and resolves the motd
 	 */
 	@Override
-	public void onEnable()
-	{
-		if (setup == false) { //first time setting up, so register events and what have you
-			setup = true;
-			//register events (plugin, listener)
-			getServer().getPluginManager().registerEvents(this, this);
-		}
+	public void onLoad() {
+
+		getServer().getPluginManager().registerEvents(this, this);
 		
-		//Path filePath = Paths.get("/res/message.txt");
-		File file = new File(getDataFolder(), "message.yml");		
-		
-		if (!file.exists())
+
+		configFile = new File(getDataFolder(), configFileName);
+		if (!configFile.exists())
 		{
 			try
 			{
@@ -64,17 +60,25 @@ public class MotdPlugin extends JavaPlugin implements Listener
 				defaultConfig.set("version", version);
 				defaultConfig.set("message", _defaultMessage);
 				
-				defaultConfig.save(file); //save our new default config out to the file.
+				defaultConfig.save(configFile); //save our new default config out to the file.
 				
 			} catch (IOException e) {
 				getLogger().info("Failed to create and write to the motd file: " + e.toString());
 			}
 		}
+	}
+	
+	/**
+	 * Registers events.
+	 */
+	@Override
+	public void onEnable()
+	{
 		
 		config = new YamlConfiguration();
 		
 		try {
-			config.load(file);
+			config.load(configFile);
 		} catch (FileNotFoundException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -102,11 +106,15 @@ public class MotdPlugin extends JavaPlugin implements Listener
 	public void onDisable()
 	{
 		this.config.set("message", _message);
-		config.save(file);
+		try {
+			config.save(configFile);
+		} catch (IOException e) {
+			getLogger().warning("Unable to save modified motd config file!");
+			e.printStackTrace();
+		}
 	}
 	
 	public void reload() {
-		onDisable();
 		onEnable();
 	}
 	
